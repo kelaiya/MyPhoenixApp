@@ -1,0 +1,123 @@
+var _user$project$Main$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$ul,
+				{ctor: '[]'},
+				A2(
+					_elm_lang$core$List$map,
+					function (n) {
+						return A2(
+							_elm_lang$html$Html$li,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$h2,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(
+											A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.name)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$img,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$src(n.image),
+											_1: {ctor: '[]'}
+										},
+										{ctor: '[]'}),
+									_1: {ctor: '[]'}
+								}
+							});
+					},
+					model.names)),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'GotName') {
+			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		} else {
+			if (_p0._0.ctor === 'Ok') {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{names: _p0._0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			} else {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							error: _elm_lang$core$Basics$toString(_p0._0._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			}
+		}
+	});
+var _user$project$Main$api = 'http://api.giphy.com/v1/gifs/search?q=cake&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15';
+var _user$project$Main$initModel = {
+	names: {ctor: '[]'},
+	error: ''
+};
+var _user$project$Main$Model = F2(
+	function (a, b) {
+		return {names: a, error: b};
+	});
+var _user$project$Main$Image = F2(
+	function (a, b) {
+		return {name: a, image: b};
+	});
+var _user$project$Main$getName = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_user$project$Main$Image,
+	A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string),
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: 'images',
+			_1: {
+				ctor: '::',
+				_0: 'original_still',
+				_1: {
+					ctor: '::',
+					_0: 'url',
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		_elm_lang$core$Json_Decode$string));
+var _user$project$Main$getNames = A2(
+	_elm_lang$core$Json_Decode$field,
+	'data',
+	_elm_lang$core$Json_Decode$list(_user$project$Main$getName));
+var _user$project$Main$getData = A2(_elm_lang$http$Http$get, _user$project$Main$api, _user$project$Main$getNames);
+var _user$project$Main$SetName = function (a) {
+	return {ctor: 'SetName', _0: a};
+};
+var _user$project$Main$initialCmd = A2(_elm_lang$http$Http$send, _user$project$Main$SetName, _user$project$Main$getData);
+var _user$project$Main$main = _elm_lang$html$Html$program(
+	{
+		update: _user$project$Main$update,
+		view: _user$project$Main$view,
+		init: {ctor: '_Tuple2', _0: _user$project$Main$initModel, _1: _user$project$Main$initialCmd},
+		subscriptions: function (_p1) {
+			return _elm_lang$core$Platform_Sub$none;
+		}
+	})();
+var _user$project$Main$GotName = {ctor: 'GotName'};
