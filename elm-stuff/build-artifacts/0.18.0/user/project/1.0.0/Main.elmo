@@ -1,22 +1,22 @@
-var _user$project$Main$studentapi = 'http://localhost:4000/api/users/';
+var _user$project$Main$userapi = 'http://localhost:4000/api/users/';
 var _user$project$Main$api = 'http://api.giphy.com/v1/gifs/search?q=cake&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15';
 var _user$project$Main$initModel = {
 	names: {ctor: '[]'},
-	students: {ctor: '[]'},
+	users: {ctor: '[]'},
 	photo: '',
 	error: ''
 };
 var _user$project$Main$Model = F4(
 	function (a, b, c, d) {
-		return {names: a, students: b, photo: c, error: d};
+		return {names: a, users: b, photo: c, error: d};
 	});
-var _user$project$Main$Data = F2(
+var _user$project$Main$Giphy = F2(
 	function (a, b) {
 		return {dataname: a, dataimage: b};
 	});
-var _user$project$Main$getName = A3(
+var _user$project$Main$getGiphy = A3(
 	_elm_lang$core$Json_Decode$map2,
-	_user$project$Main$Data,
+	_user$project$Main$Giphy,
 	A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string),
 	A2(
 		_elm_lang$core$Json_Decode$at,
@@ -34,38 +34,36 @@ var _user$project$Main$getName = A3(
 			}
 		},
 		_elm_lang$core$Json_Decode$string));
-var _user$project$Main$getNames = A2(
+var _user$project$Main$getGiphies = A2(
 	_elm_lang$core$Json_Decode$field,
 	'data',
-	_elm_lang$core$Json_Decode$list(_user$project$Main$getName));
-var _user$project$Main$getData = A2(_elm_lang$http$Http$get, _user$project$Main$api, _user$project$Main$getNames);
-var _user$project$Main$Student = F2(
+	_elm_lang$core$Json_Decode$list(_user$project$Main$getGiphy));
+var _user$project$Main$getData = A2(_elm_lang$http$Http$get, _user$project$Main$api, _user$project$Main$getGiphies);
+var _user$project$Main$Backend = F2(
 	function (a, b) {
-		return {studentname: a, studentimage: b};
+		return {username: a, userimage: b};
 	});
-var _user$project$Main$getStudentees = A3(
+var _user$project$Main$getUser = A3(
 	_elm_lang$core$Json_Decode$map2,
-	_user$project$Main$Student,
+	_user$project$Main$Backend,
 	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode$field, 'pic', _elm_lang$core$Json_Decode$string));
-var _user$project$Main$getStudent = _elm_lang$core$Json_Decode$list(_user$project$Main$getStudentees);
-var _user$project$Main$getStudents = A2(_elm_lang$http$Http$get, _user$project$Main$studentapi, _user$project$Main$getStudent);
-var _user$project$Main$AddName = function (a) {
-	return {ctor: 'AddName', _0: a};
+var _user$project$Main$getUsers = _elm_lang$core$Json_Decode$list(_user$project$Main$getUser);
+var _user$project$Main$getBackendUsers = A2(_elm_lang$http$Http$get, _user$project$Main$userapi, _user$project$Main$getUsers);
+var _user$project$Main$GetDataFromGiphy = function (a) {
+	return {ctor: 'GetDataFromGiphy', _0: a};
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
 		switch (_p0.ctor) {
-			case 'GotName':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'SetName':
+			case 'GetDataFromBackend':
 				if (_p0._0.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{students: _p0._0._0}),
+							{users: _p0._0._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
@@ -79,11 +77,11 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
-			case 'SetStudent':
+			case 'SetGiphyApi':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: A2(_elm_lang$http$Http$send, _user$project$Main$AddName, _user$project$Main$getData)
+					_1: A2(_elm_lang$http$Http$send, _user$project$Main$GetDataFromGiphy, _user$project$Main$getData)
 				};
 			default:
 				if (_p0._0.ctor === 'Ok') {
@@ -107,7 +105,7 @@ var _user$project$Main$update = F2(
 				}
 		}
 	});
-var _user$project$Main$SetStudent = {ctor: 'SetStudent'};
+var _user$project$Main$SetGiphyApi = {ctor: 'SetGiphyApi'};
 var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -129,7 +127,7 @@ var _user$project$Main$view = function (model) {
 									_elm_lang$html$Html$button,
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SetStudent),
+										_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SetGiphyApi),
 										_1: {ctor: '[]'}
 									},
 									{
@@ -140,7 +138,7 @@ var _user$project$Main$view = function (model) {
 											{
 												ctor: '::',
 												_0: _elm_lang$html$Html$text(
-													A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.studentname)),
+													A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.username)),
 												_1: {ctor: '[]'}
 											}),
 										_1: {ctor: '[]'}
@@ -151,7 +149,7 @@ var _user$project$Main$view = function (model) {
 										_elm_lang$html$Html$img,
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$src(n.studentimage),
+											_0: _elm_lang$html$Html_Attributes$src(n.userimage),
 											_1: {ctor: '[]'}
 										},
 										{ctor: '[]'}),
@@ -159,7 +157,7 @@ var _user$project$Main$view = function (model) {
 								}
 							});
 					},
-					model.students)),
+					model.users)),
 			_1: {
 				ctor: '::',
 				_0: _elm_lang$core$Native_Utils.eq(
@@ -188,19 +186,12 @@ var _user$project$Main$view = function (model) {
 										{
 											ctor: '::',
 											_0: A2(
-												_elm_lang$html$Html$button,
+												_elm_lang$html$Html$h2,
 												{ctor: '[]'},
 												{
 													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$h2,
-														{ctor: '[]'},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text(
-																A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.dataname)),
-															_1: {ctor: '[]'}
-														}),
+													_0: _elm_lang$html$Html$text(
+														A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.dataname)),
 													_1: {ctor: '[]'}
 												}),
 											_1: {
@@ -224,10 +215,10 @@ var _user$project$Main$view = function (model) {
 			}
 		});
 };
-var _user$project$Main$SetName = function (a) {
-	return {ctor: 'SetName', _0: a};
+var _user$project$Main$GetDataFromBackend = function (a) {
+	return {ctor: 'GetDataFromBackend', _0: a};
 };
-var _user$project$Main$initialCmd = A2(_elm_lang$http$Http$send, _user$project$Main$SetName, _user$project$Main$getStudents);
+var _user$project$Main$initialCmd = A2(_elm_lang$http$Http$send, _user$project$Main$GetDataFromBackend, _user$project$Main$getBackendUsers);
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{
 		update: _user$project$Main$update,
@@ -237,4 +228,3 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();
-var _user$project$Main$GotName = {ctor: 'GotName'};
