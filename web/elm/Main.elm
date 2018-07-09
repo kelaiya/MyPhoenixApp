@@ -1,4 +1,4 @@
---module Main exposing (main)
+--dmodule Main exposing (main)
 --import Html exposing (..)
 --import Json.Decode exposing (..)
 --import Html.Events exposing (..)
@@ -202,8 +202,12 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Http
+import Http exposing (Request)
 import Json.Decode as JD
+import Json.Encode as JE
+import Task exposing (..)
 
 
 {--Model--}
@@ -211,6 +215,8 @@ import Json.Decode as JD
 
 type alias Model =
    { names : List Image
+   , students : List Image
+   , photo : String
    , error : String
    }
 
@@ -223,6 +229,8 @@ type alias Image =
 initModel : Model
 initModel =
    { names = []
+   , students = []
+   , photo = ""
    , error = ""
    }
 
@@ -248,10 +256,33 @@ getName =
        (JD.field "title" JD.string)
        (JD.at [ "images", "original_still", "url" ] JD.string)
 
+studentapi : String
+studentapi =
+   "http://localhost:4000/api/students/"
+
+
+getStudents : Http.Request (List Image)
+getStudents =
+   Http.get studentapi getStudent
+
+
+getStudent : JD.Decoder (List Image)
+getStudent =
+   JD.list getStudentees
+
+
+getStudentees : JD.Decoder Image
+getStudentees =
+   JD.map2 Image
+       (JD.field "name" JD.string)
+       (JD.field "pic" JD.string)
 
 type Msg
    = GotName
    | SetName (Result Http.Error (List Image))
+   | SetStudent (Result Http.Error (List Image))
+   | AddName String
+   | Data (Result Http.Error Image)
 
 
 
@@ -260,20 +291,44 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-   case msg of
-       GotName ->
-           ( model, Cmd.none )
+    case msg of
+        GotName ->
+            ( model, Cmd.none )
 
-       SetName (Ok names) ->
-           ( { model | names = names }, Cmd.none )
+        SetName (Ok names) ->
+            ( { model | names = names }, Cmd.none )
 
-       SetName (Err error) ->
-           ( { model | error = toString error }, Cmd.none )
+        SetName (Err error) ->
+            ( { model | error = toString error }, Cmd.none )
+        SetStudent (Ok names) ->
+            ( { model | students = names }, Cmd.none )
 
+        SetStudent (Err error) ->
+            ( { model | error = toString error }, Cmd.none )
+
+        --AddName photo ->
+        --    ( { model | photo = photo }, Http.send Data ( postData model.photo ))
+
+        --Data (Ok photo) ->
+        --    ( { model | photo = photo }, Cmd.none )
+
+        --Data (Err error) ->
+        --    ( { model | error = toString error }, Cmd.none )
+
+
+getResult : Task Http.Error (List Image)
+getResult =
+   --Task.map2 Image
+   --    (Http.toTask getData)
+   --    (Http.toTask getStudents)
+   getNames
+        |> Http.get api
+        |> Task.sequence
+        |> Http.get studentapi getStudents
 
 initialCmd : Cmd Msg
 initialCmd =
-   Http.send SetName getData
+   Http.send SetName getResult
 
 
 
@@ -287,7 +342,7 @@ view model =
            (List.map
                (\n ->
                    li []
-                       [ button [onClick func] [h2 [] [ text ("Title : " ++ n.name) ]]
+                       [ button [onClick (AddName n.name) ] [h2 [] [ text ("Title : " ++ n.name) ]]
                        , img [src n.image] []
                        ]
                )
@@ -295,6 +350,65 @@ view model =
            )
        ]
 
+--postData : String -> Http.Body -> Http.Request String
+--postData ntitle =
+--   Http.request
+--       { method = "POST"
+--       , headers = 
+--            [ header ["Origin"] "http://localhost:8000"
+--           , header ["Access-Control-Request-Method"] "POST"
+--           , header ["Access-Control-Request-Headers"] "X-Custom-Header"
+--           ]
+--       , url = "http://localhost:4000/api/users/post/"
+--       , body = Http.jsonBody (JE.object [("title", JE.string ntitle)]) 
+--       , expect = Http.expectJson (JD.at [ "title" ] JD.string)
+--       , timeout = Nothing
+--       , withCredentials = True
+       --}
+
+--backendapi : String 
+--backendapi =
+--   "http://localhost:4000/api/users/post/"
+
+
+--postData : String -> Http.Request String
+--postData ntitle =
+--   Http.post backendapi (Http.jsonBody (postName ntitle)) sendName
+
+--postName : String -> JE.Value
+--postName ntitle =
+--    JE.object
+--        [ ( "title", JE.string ntitle )]
+
+--sendName : JD.Decoder String 
+--sendName =
+--   JD.field "title" JD.string
+
+--corsPost : Request
+--corsPost =
+--       { verb = "POST"
+--       , headers =
+--           [ ("Origin", "http://localhost:8000")
+--           , ("Access-Control-Request-Method", "POST")
+--           , ("Access-Control-Request-Headers", "X-Custom-Header")
+--           ]
+--       , url = "http://localhost:4000/api/users/post/"
+--       , body = empty
+--       }
+
+--type alias Request =
+--   { verb : String
+--   , headers : List (String, String)
+--   , url : String
+--   , body : Body
+--   }
+
+--type Body 
+--    = Empty
+
+--empty : Body
+--empty 
+--    = Empty
 
 main : Program Never Model Msg
 main =

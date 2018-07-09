@@ -38,12 +38,14 @@ config :myapp, Myapp.Endpoint,
       ~r{web/templates/.*(eex)$}
     ]
   ]
-
+# https://www.google.com/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&ved=2ahUKEwjqy5DG6IrcAhXEct8KHV0dDjgQjRx6BAgBEAU&url=https%3A%2F%2Fwww.mirror.co.uk%2Ftv%2Ftv-news%2Fcartoon-characters-always-wear-gloves-9759499&psig=AOvVaw0ShkmYP3wzDwsvdbqbwzqN&ust=1530978223077449
 config :cors_plug,
  origin: [
    "http://localhost:8000",
+   "http://localhost:4000",
    "http://localhost:4000/api/users/",
-   "http://localhost:4000/api/students/"
+   "http://localhost:4000/api/students/",
+   "http://localhost:4000/api/users/post/"
  ]
 
 

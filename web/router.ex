@@ -16,7 +16,8 @@ defmodule Myapp.Router do
   scope "/api", Myapp do
     pipe_through :api
     get "/students", StudentController, :index
-    get "/users", UserController, :index 
+    get "/users", UserController, :index
+    post "/users", LeadController, :create 
   end
 
   # Other scopes may use custom stacks.

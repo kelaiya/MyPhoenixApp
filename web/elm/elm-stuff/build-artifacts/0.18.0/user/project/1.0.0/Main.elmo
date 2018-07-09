@@ -1,82 +1,34 @@
-var _user$project$Main$view = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
+var _user$project$Main$sendName = A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string);
+var _user$project$Main$postName = function (ntitle) {
+	return _elm_lang$core$Json_Encode$object(
 		{
 			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$ul,
-				{ctor: '[]'},
-				A2(
-					_elm_lang$core$List$map,
-					function (n) {
-						return A2(
-							_elm_lang$html$Html$li,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$h2,
-									{ctor: '[]'},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(
-											A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.name)),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$img,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$src(n.image),
-											_1: {ctor: '[]'}
-										},
-										{ctor: '[]'}),
-									_1: {ctor: '[]'}
-								}
-							});
-					},
-					model.names)),
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'title',
+				_1: _elm_lang$core$Json_Encode$string(ntitle)
+			},
 			_1: {ctor: '[]'}
 		});
 };
-var _user$project$Main$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		if (_p0.ctor === 'GotName') {
-			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-		} else {
-			if (_p0._0.ctor === 'Ok') {
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{names: _p0._0._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			} else {
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							error: _elm_lang$core$Basics$toString(_p0._0._0)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			}
-		}
-	});
+var _user$project$Main$backendapi = 'http://localhost:4000/api/users/post/';
+var _user$project$Main$postData = function (ntitle) {
+	return A3(
+		_elm_lang$http$Http$post,
+		_user$project$Main$backendapi,
+		_elm_lang$http$Http$jsonBody(
+			_user$project$Main$postName(ntitle)),
+		_user$project$Main$sendName);
+};
 var _user$project$Main$api = 'http://api.giphy.com/v1/gifs/search?q=cake&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15';
 var _user$project$Main$initModel = {
 	names: {ctor: '[]'},
+	photo: '',
 	error: ''
 };
-var _user$project$Main$Model = F2(
-	function (a, b) {
-		return {names: a, error: b};
+var _user$project$Main$Model = F3(
+	function (a, b, c) {
+		return {names: a, photo: b, error: c};
 	});
 var _user$project$Main$Image = F2(
 	function (a, b) {
@@ -107,6 +59,131 @@ var _user$project$Main$getNames = A2(
 	'data',
 	_elm_lang$core$Json_Decode$list(_user$project$Main$getName));
 var _user$project$Main$getData = A2(_elm_lang$http$Http$get, _user$project$Main$api, _user$project$Main$getNames);
+var _user$project$Main$Request = F4(
+	function (a, b, c, d) {
+		return {verb: a, headers: b, url: c, body: d};
+	});
+var _user$project$Main$Data = function (a) {
+	return {ctor: 'Data', _0: a};
+};
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'GotName':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'SetName':
+				if (_p0._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{names: _p0._0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								error: _elm_lang$core$Basics$toString(_p0._0._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			case 'AddName':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{photo: _p0._0}),
+					_1: A2(
+						_elm_lang$http$Http$send,
+						_user$project$Main$Data,
+						_user$project$Main$postData(model.photo))
+				};
+			default:
+				if (_p0._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{photo: _p0._0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								error: _elm_lang$core$Basics$toString(_p0._0._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+		}
+	});
+var _user$project$Main$AddName = function (a) {
+	return {ctor: 'AddName', _0: a};
+};
+var _user$project$Main$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$ul,
+				{ctor: '[]'},
+				A2(
+					_elm_lang$core$List$map,
+					function (n) {
+						return A2(
+							_elm_lang$html$Html$li,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$button,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(
+											_user$project$Main$AddName(n.name)),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$h2,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(
+													A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.name)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$img,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$src(n.image),
+											_1: {ctor: '[]'}
+										},
+										{ctor: '[]'}),
+									_1: {ctor: '[]'}
+								}
+							});
+					},
+					model.names)),
+			_1: {ctor: '[]'}
+		});
+};
 var _user$project$Main$SetName = function (a) {
 	return {ctor: 'SetName', _0: a};
 };
@@ -121,3 +198,23 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 		}
 	})();
 var _user$project$Main$GotName = {ctor: 'GotName'};
+var _user$project$Main$Empty = {ctor: 'Empty'};
+var _user$project$Main$empty = _user$project$Main$Empty;
+var _user$project$Main$corsPost = {
+	verb: 'POST',
+	headers: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'Origin', _1: 'http://localhost:8000'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'Access-Control-Request-Method', _1: 'POST'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'Access-Control-Request-Headers', _1: 'X-Custom-Header'},
+				_1: {ctor: '[]'}
+			}
+		}
+	},
+	url: 'http://localhost:4000/api/users/post/',
+	body: _user$project$Main$empty
+};
