@@ -214,22 +214,27 @@ import Task exposing (..)
 
 
 type alias Model =
-   { names : List Image
-   , students : List Image
+   { names : List Giphy
+   , users : List Backend
    , photo : String
    , error : String
    }
 
 
-type alias Image =
-   { name : String
-   , image: String
-   }
+type alias Giphy = 
+  { dataname : String
+  , dataimage : String
+  }
+
+type alias Backend = 
+  { username : String
+  , userimage : String
+  }
 
 initModel : Model
 initModel =
    { names = []
-   , students = []
+   , users = []
    , photo = ""
    , error = ""
    }
@@ -240,49 +245,52 @@ api =
    "http://api.giphy.com/v1/gifs/search?q=cake&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15"
 
 
-getData : Http.Request (List Image)
+getData : Http.Request (List Giphy)
 getData =
-   Http.get api getNames
+   Http.get api getGiphies
 
 
-getNames : JD.Decoder (List Image)
-getNames =
-   JD.field "data" (JD.list getName)
+getGiphies : JD.Decoder (List Giphy)
+getGiphies =
+   JD.field "data" (JD.list getGiphy)
 
 
-getName : JD.Decoder Image
-getName =
-   JD.map2 Image
+getGiphy : JD.Decoder Giphy
+getGiphy =
+   JD.map2 Giphy
        (JD.field "title" JD.string)
        (JD.at [ "images", "original_still", "url" ] JD.string)
 
-studentapi : String
-studentapi =
-   "http://localhost:4000/api/students/"
+userapi : String
+userapi =
+   "http://localhost:4000/api/users/"
 
 
-getStudents : Http.Request (List Image)
-getStudents =
-   Http.get studentapi getStudent
+getBackendUsers : Http.Request (List Backend)
+getBackendUsers =
+   Http.get userapi getUsers
 
 
-getStudent : JD.Decoder (List Image)
-getStudent =
-   JD.list getStudentees
+getUsers : JD.Decoder (List Backend)
+getUsers =
+   JD.list getUser
 
 
-getStudentees : JD.Decoder Image
-getStudentees =
-   JD.map2 Image
+getUser : JD.Decoder Backend
+getUser =
+   JD.map2 Backend
        (JD.field "name" JD.string)
        (JD.field "pic" JD.string)
 
+initialCmd : Cmd Msg
+initialCmd =
+   Http.send GetDataFromBackend getBackendUsers
+
+
 type Msg
-   = GotName
-   | SetName (Result Http.Error (List Image))
-   | SetStudent (Result Http.Error (List Image))
-   | AddName String
-   | Data (Result Http.Error Image)
+   = GetDataFromBackend (Result Http.Error (List Backend))
+   | SetGiphyApi 
+   | GetDataFromGiphy (Result Http.Error (List Giphy))
 
 
 
@@ -292,43 +300,22 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotName ->
-            ( model, Cmd.none )
+        GetDataFromBackend (Ok users) ->
+            ( { model | users = users }, Cmd.none )
 
-        SetName (Ok names) ->
-            ( { model | names = names }, Cmd.none )
-
-        SetName (Err error) ->
+        GetDataFromBackend (Err error) ->
             ( { model | error = toString error }, Cmd.none )
-        SetStudent (Ok names) ->
-            ( { model | students = names }, Cmd.none )
+        SetGiphyApi ->
+            ( model, Http.send GetDataFromGiphy getData )
 
-        SetStudent (Err error) ->
+        GetDataFromGiphy (Ok names) ->
+            ( { model | names = names }, Cmd.none)
+
+        GetDataFromGiphy (Err error) ->
             ( { model | error = toString error }, Cmd.none )
 
-        --AddName photo ->
-        --    ( { model | photo = photo }, Http.send Data ( postData model.photo ))
-
-        --Data (Ok photo) ->
-        --    ( { model | photo = photo }, Cmd.none )
-
-        --Data (Err error) ->
-        --    ( { model | error = toString error }, Cmd.none )
 
 
-getResult : Task Http.Error (List Image)
-getResult =
-   --Task.map2 Image
-   --    (Http.toTask getData)
-   --    (Http.toTask getStudents)
-   getNames
-        |> Http.get api
-        |> Task.sequence
-        |> Http.get studentapi getStudents
-
-initialCmd : Cmd Msg
-initialCmd =
-   Http.send SetName getResult
 
 
 
@@ -338,17 +325,34 @@ initialCmd =
 view : Model -> Html Msg
 view model =
    div []
-       [ ul []
+        [ ul []
            (List.map
-               (\n ->
-                   li []
-                       [ button [onClick (AddName n.name) ] [h2 [] [ text ("Title : " ++ n.name) ]]
-                       , img [src n.image] []
-                       ]
-               )
-               model.names
+                (\n ->
+                    li []
+                        [ button [onClick SetGiphyApi] [h2 [] [ text ("Title : " ++ n.username) ]]
+                        , img [src n.userimage] []
+                        ]
+                )
+                model.users
            )
+
+        , if model.names == [] then
+            div [][text "Hello"]
+          else
+            div [] [ul []
+              (List.map
+                (\n ->
+                     li []
+                         [ h2 [] [ text ("Title : " ++ n.dataname) ]
+                         , img [src n.dataimage] []
+
+                         ]
+                )
+                model.names
+              )
+            ]
        ]
+
 
 --postData : String -> Http.Body -> Http.Request String
 --postData ntitle =
