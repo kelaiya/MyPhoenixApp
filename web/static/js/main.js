@@ -9033,6 +9033,28 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
+var _user$project$Main$sendName = A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string);
+var _user$project$Main$postName = function (name) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'name',
+				_1: _elm_lang$core$Json_Encode$string(name)
+			},
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Main$backendapi = 'http://localhost:4000/api/users/post/';
+var _user$project$Main$postData = function (name) {
+	return A3(
+		_elm_lang$http$Http$post,
+		_user$project$Main$backendapi,
+		_elm_lang$http$Http$jsonBody(
+			_user$project$Main$postName(name)),
+		_user$project$Main$sendName);
+};
 var _user$project$Main$userapi = 'http://localhost:4000/api/users/';
 var _user$project$Main$api = 'http://api.giphy.com/v1/gifs/search?q=cake&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15';
 var _user$project$Main$initModel = {
@@ -9085,6 +9107,12 @@ var _user$project$Main$getUser = A3(
 	A2(_elm_lang$core$Json_Decode$field, 'pic', _elm_lang$core$Json_Decode$string));
 var _user$project$Main$getUsers = _elm_lang$core$Json_Decode$list(_user$project$Main$getUser);
 var _user$project$Main$getBackendUsers = A2(_elm_lang$http$Http$get, _user$project$Main$userapi, _user$project$Main$getUsers);
+var _user$project$Main$PicPosted = function (a) {
+	return {ctor: 'PicPosted', _0: a};
+};
+var _user$project$Main$PostPic = function (a) {
+	return {ctor: 'PostPic', _0: a};
+};
 var _user$project$Main$GetDataFromGiphy = function (a) {
 	return {ctor: 'GetDataFromGiphy', _0: a};
 };
@@ -9118,13 +9146,45 @@ var _user$project$Main$update = F2(
 					_0: model,
 					_1: A2(_elm_lang$http$Http$send, _user$project$Main$GetDataFromGiphy, _user$project$Main$getData)
 				};
-			default:
+			case 'GetDataFromGiphy':
 				if (_p0._0.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{names: _p0._0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								error: _elm_lang$core$Basics$toString(_p0._0._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			case 'PostPic':
+				var _p1 = _p0._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{photo: _p1}),
+					_1: A2(
+						_elm_lang$http$Http$send,
+						_user$project$Main$PicPosted,
+						_user$project$Main$postData(_p1))
+				};
+			default:
+				if (_p0._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{photo: _p0._0._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
@@ -9148,76 +9208,33 @@ var _user$project$Main$view = function (model) {
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$html$Html$ul,
+				_elm_lang$html$Html$h1,
 				{ctor: '[]'},
-				A2(
-					_elm_lang$core$List$map,
-					function (n) {
-						return A2(
-							_elm_lang$html$Html$li,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$button,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SetGiphyApi),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$h2,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text(
-													A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.username)),
-												_1: {ctor: '[]'}
-											}),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$img,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$src(n.userimage),
-											_1: {ctor: '[]'}
-										},
-										{ctor: '[]'}),
-									_1: {ctor: '[]'}
-								}
-							});
-					},
-					model.users)),
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('This is the data from Backend'),
+					_1: {ctor: '[]'}
+				}),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$core$Native_Utils.eq(
-					model.names,
-					{ctor: '[]'}) ? A2(
-					_elm_lang$html$Html$div,
+				_0: A2(
+					_elm_lang$html$Html$ul,
 					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text('Hello'),
-						_1: {ctor: '[]'}
-					}) : A2(
-					_elm_lang$html$Html$div,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$ul,
-							{ctor: '[]'},
-							A2(
-								_elm_lang$core$List$map,
-								function (n) {
-									return A2(
-										_elm_lang$html$Html$li,
-										{ctor: '[]'},
+					A2(
+						_elm_lang$core$List$map,
+						function (n) {
+							return A2(
+								_elm_lang$html$Html$li,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$button,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SetGiphyApi),
+											_1: {ctor: '[]'}
+										},
 										{
 											ctor: '::',
 											_0: A2(
@@ -9226,27 +9243,104 @@ var _user$project$Main$view = function (model) {
 												{
 													ctor: '::',
 													_0: _elm_lang$html$Html$text(
-														A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.dataname)),
+														A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.username)),
 													_1: {ctor: '[]'}
 												}),
-											_1: {
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$img,
+											{
 												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$img,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$src(n.dataimage),
-														_1: {ctor: '[]'}
-													},
-													{ctor: '[]'}),
+												_0: _elm_lang$html$Html_Attributes$src(n.userimage),
 												_1: {ctor: '[]'}
-											}
-										});
-								},
-								model.names)),
+											},
+											{ctor: '[]'}),
+										_1: {ctor: '[]'}
+									}
+								});
+						},
+						model.users)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$h1,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('This is the data from Giphy Api'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Native_Utils.eq(
+							model.names,
+							{ctor: '[]'}) ? A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Hello'),
+								_1: {ctor: '[]'}
+							}) : A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$ul,
+									{ctor: '[]'},
+									A2(
+										_elm_lang$core$List$map,
+										function (n) {
+											return A2(
+												_elm_lang$html$Html$li,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$button,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Events$onClick(
+																_user$project$Main$PostPic(n.dataname)),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$h2,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text(
+																		A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.dataname)),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$img,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$src(n.dataimage),
+																_1: {ctor: '[]'}
+															},
+															{ctor: '[]'}),
+														_1: {ctor: '[]'}
+													}
+												});
+										},
+										model.names)),
+								_1: {ctor: '[]'}
+							}),
 						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
+					}
+				}
 			}
 		});
 };
@@ -9259,7 +9353,7 @@ var _user$project$Main$main = _elm_lang$html$Html$program(
 		update: _user$project$Main$update,
 		view: _user$project$Main$view,
 		init: {ctor: '_Tuple2', _0: _user$project$Main$initModel, _1: _user$project$Main$initialCmd},
-		subscriptions: function (_p1) {
+		subscriptions: function (_p2) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();

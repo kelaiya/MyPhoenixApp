@@ -6,7 +6,7 @@ import Html.Events exposing (..)
 import Http
 import Http exposing (Request)
 import Json.Decode as JD
-
+import Json.Encode as JE
 
 {--Model--}
 
@@ -94,7 +94,8 @@ type Msg
    = GetDataFromBackend (Result Http.Error (List Backend))
    | SetGiphyApi 
    | GetDataFromGiphy (Result Http.Error (List Giphy))
-
+   | PostPic String
+   | PicPosted (Result Http.Error String)
 
 
 {--Update--}
@@ -115,6 +116,15 @@ update msg model =
 
         GetDataFromGiphy (Err error) ->
             ( { model | error = toString error }, Cmd.none )
+        PostPic photo ->
+            ( {model | photo = photo}, Http.send PicPosted (postData photo) )
+
+        PicPosted (Ok photo) ->
+            ( { model | photo = photo }, Cmd.none)
+
+        PicPosted (Err error) ->
+            ( { model | error = toString error }, Cmd.none )
+
 
 
 {--View--}
@@ -122,7 +132,8 @@ update msg model =
 view : Model -> Html Msg
 view model =
    div []
-        [ ul []
+        [ h1[] [text "This is the data from Backend"]
+        , ul []
            (List.map
                 (\n ->
                     li []
@@ -133,6 +144,8 @@ view model =
                 model.users
            )
 
+        , h1[] [text "This is the data from Giphy Api"]
+
         , if model.names == [] then
             div [][text "Hello"]
           else
@@ -140,7 +153,7 @@ view model =
               (List.map
                 (\n ->
                      li []
-                         [ h2 [] [ text ("Title : " ++ n.dataname) ]
+                         [ button [onClick (PostPic n.dataname) ] [h2 [] [ text ("Title : " ++ n.dataname) ]]
                          , img [src n.dataimage] []
 
                          ]
@@ -166,63 +179,24 @@ main =
 
 {-- Rough --}
 
---postData : String -> Http.Body -> Http.Request String
---postData ntitle =
---   Http.request
---       { method = "POST"
---       , headers = 
---            [ header ["Origin"] "http://localhost:8000"
---           , header ["Access-Control-Request-Method"] "POST"
---           , header ["Access-Control-Request-Headers"] "X-Custom-Header"
---           ]
---       , url = "http://localhost:4000/api/users/post/"
---       , body = Http.jsonBody (JE.object [("title", JE.string ntitle)]) 
---       , expect = Http.expectJson (JD.at [ "title" ] JD.string)
---       , timeout = Nothing
---       , withCredentials = True
-       --}
-
---backendapi : String 
---backendapi =
---   "http://localhost:4000/api/users/post/"
 
 
---postData : String -> Http.Request String
---postData ntitle =
---   Http.post backendapi (Http.jsonBody (postName ntitle)) sendName
+backendapi : String 
+backendapi =
+   "http://localhost:4000/api/users/post/"
 
---postName : String -> JE.Value
---postName ntitle =
---    JE.object
---        [ ( "title", JE.string ntitle )]
 
---sendName : JD.Decoder String 
---sendName =
---   JD.field "title" JD.string
+postData : String -> Http.Request String
+postData name =
+   Http.post backendapi (Http.jsonBody (postName name)) sendName
 
---corsPost : Request
---corsPost =
---       { verb = "POST"
---       , headers =
---           [ ("Origin", "http://localhost:8000")
---           , ("Access-Control-Request-Method", "POST")
---           , ("Access-Control-Request-Headers", "X-Custom-Header")
---           ]
---       , url = "http://localhost:4000/api/users/post/"
---       , body = empty
---       }
+postName : String -> JE.Value
+postName name =
+    JE.object
+        [ ( "name", JE.string name )]
 
---type alias Request =
---   { verb : String
---   , headers : List (String, String)
---   , url : String
---   , body : Body
---   }
+sendName : JD.Decoder String 
+sendName =
+   JD.field "name" JD.string
 
---type Body 
---    = Empty
-
---empty : Body
---empty 
---    = Empty
 

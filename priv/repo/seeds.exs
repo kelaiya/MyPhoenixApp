@@ -12,8 +12,8 @@
 alias Myapp.Repo
 alias Myapp.User
 
-Repo.insert! %User{name: "Hanna", pic: "hello"}
-Repo.insert! %User{name: "Ann", pic: "Hello"}
-Repo.insert! %User{name: "Emma", pic: "Hello"}
-Repo.insert! %User{name: "Mary", pic: "Hello"}
-Repo.insert! %User{name: "Julia", pic: "Hello"}
+Repo.insert! %User{name: "Hanna", pic: "https://media2.giphy.com/media/xTiTnrliW65rlwud8I/giphy-tumblr_s.gif"}
+Repo.insert! %User{name: "Ann", pic: "https://media2.giphy.com/media/xTiTnrliW65rlwud8I/giphy-tumblr_s.gif"}
+Repo.insert! %User{name: "Emma", pic: "https://media2.giphy.com/media/xTiTnrliW65rlwud8I/giphy-tumblr_s.gif"}
+Repo.insert! %User{name: "Mary", pic: "https://media2.giphy.com/media/xTiTnrliW65rlwud8I/giphy-tumblr_s.gif"}
+Repo.insert! %User{name: "Julia", pic: "https://media2.giphy.com/media/xTiTnrliW65rlwud8I/giphy-tumblr_s.gif"}
