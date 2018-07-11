@@ -26,11 +26,12 @@ var _user$project$Main$initModel = {
 	names: {ctor: '[]'},
 	users: {ctor: '[]'},
 	photo: '',
+	search: '',
 	error: ''
 };
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {names: a, users: b, photo: c, error: d};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {names: a, users: b, photo: c, search: d, error: e};
 	});
 var _user$project$Main$Giphy = F2(
 	function (a, b) {
@@ -60,23 +61,226 @@ var _user$project$Main$getGiphies = A2(
 	_elm_lang$core$Json_Decode$field,
 	'data',
 	_elm_lang$core$Json_Decode$list(_user$project$Main$getGiphy));
-var _user$project$Main$getData = A2(_elm_lang$http$Http$get, _user$project$Main$api, _user$project$Main$getGiphies);
-var _user$project$Main$Backend = F2(
-	function (a, b) {
-		return {username: a, userimage: b};
+var _user$project$Main$getData = function (search) {
+	var giphyapi = A2(
+		_elm_lang$core$Basics_ops['++'],
+		'http://api.giphy.com/v1/gifs/search?q=',
+		A2(_elm_lang$core$Basics_ops['++'], search, '&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15'));
+	return A2(_elm_lang$http$Http$get, giphyapi, _user$project$Main$getGiphies);
+};
+var _user$project$Main$Backend = F3(
+	function (a, b, c) {
+		return {username: a, userimage: b, userid: c};
 	});
-var _user$project$Main$getUser = A3(
-	_elm_lang$core$Json_Decode$map2,
+var _user$project$Main$getUser = A4(
+	_elm_lang$core$Json_Decode$map3,
 	_user$project$Main$Backend,
 	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
-	A2(_elm_lang$core$Json_Decode$field, 'pic', _elm_lang$core$Json_Decode$string));
+	A2(_elm_lang$core$Json_Decode$field, 'pic', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int));
 var _user$project$Main$getUsers = _elm_lang$core$Json_Decode$list(_user$project$Main$getUser);
 var _user$project$Main$getBackendUsers = A2(_elm_lang$http$Http$get, _user$project$Main$userapi, _user$project$Main$getUsers);
+var _user$project$Main$AddSearch = {ctor: 'AddSearch'};
+var _user$project$Main$Search = function (a) {
+	return {ctor: 'Search', _0: a};
+};
 var _user$project$Main$PicPosted = function (a) {
 	return {ctor: 'PicPosted', _0: a};
 };
 var _user$project$Main$PostPic = function (a) {
 	return {ctor: 'PostPic', _0: a};
+};
+var _user$project$Main$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h1,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('This is the data from Backend'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$ul,
+					{ctor: '[]'},
+					A2(
+						_elm_lang$core$List$map,
+						function (n) {
+							return A2(
+								_elm_lang$html$Html$li,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$button,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onClick(
+												_user$project$Main$PostPic(n.username)),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$h2,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(
+														A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.username)),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$img,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$src(n.userimage),
+												_1: {ctor: '[]'}
+											},
+											{ctor: '[]'}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$h3,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(
+														_elm_lang$core$Basics$toString(n.userid)),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}
+								});
+						},
+						model.users)),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$input,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$type_('text'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$value(model.search),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$Search),
+											_1: {ctor: '[]'}
+										}
+									}
+								},
+								{ctor: '[]'}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$button,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$AddSearch),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Add'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Native_Utils.eq(
+							model.names,
+							{ctor: '[]'}) ? A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Hello'),
+								_1: {ctor: '[]'}
+							}) : A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$h1,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('This is the data from Giphy Api'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$ul,
+										{ctor: '[]'},
+										A2(
+											_elm_lang$core$List$map,
+											function (n) {
+												return A2(
+													_elm_lang$html$Html$li,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$button,
+															{ctor: '[]'},
+															{
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$h2,
+																	{ctor: '[]'},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text(
+																			A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.dataname)),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$img,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$src(n.dataimage),
+																	_1: {ctor: '[]'}
+																},
+																{ctor: '[]'}),
+															_1: {ctor: '[]'}
+														}
+													});
+											},
+											model.names)),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		});
 };
 var _user$project$Main$GetDataFromGiphy = function (a) {
 	return {ctor: 'GetDataFromGiphy', _0: a};
@@ -105,12 +309,6 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
-			case 'SetGiphyApi':
-				return {
-					ctor: '_Tuple2',
-					_0: model,
-					_1: A2(_elm_lang$http$Http$send, _user$project$Main$GetDataFromGiphy, _user$project$Main$getData)
-				};
 			case 'GetDataFromGiphy':
 				if (_p0._0.ctor === 'Ok') {
 					return {
@@ -143,7 +341,7 @@ var _user$project$Main$update = F2(
 						_user$project$Main$PicPosted,
 						_user$project$Main$postData(_p1))
 				};
-			default:
+			case 'PicPosted':
 				if (_p0._0.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
@@ -163,152 +361,27 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
+			case 'Search':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{search: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{search: ''}),
+					_1: A2(
+						_elm_lang$http$Http$send,
+						_user$project$Main$GetDataFromGiphy,
+						_user$project$Main$getData(model.search))
+				};
 		}
 	});
-var _user$project$Main$SetGiphyApi = {ctor: 'SetGiphyApi'};
-var _user$project$Main$view = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$h1,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('This is the data from Backend'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$ul,
-					{ctor: '[]'},
-					A2(
-						_elm_lang$core$List$map,
-						function (n) {
-							return A2(
-								_elm_lang$html$Html$li,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$button,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$SetGiphyApi),
-											_1: {ctor: '[]'}
-										},
-										{
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$h2,
-												{ctor: '[]'},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text(
-														A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.username)),
-													_1: {ctor: '[]'}
-												}),
-											_1: {ctor: '[]'}
-										}),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$img,
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$src(n.userimage),
-												_1: {ctor: '[]'}
-											},
-											{ctor: '[]'}),
-										_1: {ctor: '[]'}
-									}
-								});
-						},
-						model.users)),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$h1,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('This is the data from Giphy Api'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$core$Native_Utils.eq(
-							model.names,
-							{ctor: '[]'}) ? A2(
-							_elm_lang$html$Html$div,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Hello'),
-								_1: {ctor: '[]'}
-							}) : A2(
-							_elm_lang$html$Html$div,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$ul,
-									{ctor: '[]'},
-									A2(
-										_elm_lang$core$List$map,
-										function (n) {
-											return A2(
-												_elm_lang$html$Html$li,
-												{ctor: '[]'},
-												{
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$button,
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html_Events$onClick(
-																_user$project$Main$PostPic(n.dataname)),
-															_1: {ctor: '[]'}
-														},
-														{
-															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$h2,
-																{ctor: '[]'},
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html$text(
-																		A2(_elm_lang$core$Basics_ops['++'], 'Title : ', n.dataname)),
-																	_1: {ctor: '[]'}
-																}),
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$img,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$src(n.dataimage),
-																_1: {ctor: '[]'}
-															},
-															{ctor: '[]'}),
-														_1: {ctor: '[]'}
-													}
-												});
-										},
-										model.names)),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
-				}
-			}
-		});
-};
 var _user$project$Main$GetDataFromBackend = function (a) {
 	return {ctor: 'GetDataFromBackend', _0: a};
 };
