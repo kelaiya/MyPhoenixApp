@@ -12,13 +12,12 @@ import Json.Encode as JE
 
 
 type alias Model =
-   { names : List Giphy
-   , users : List Backend
-   , photo : Webdata
+   { frontend : List Giphy
+   , backend : List Backend
+   , favorite : Favorite
    , search : String
    , error : String
    }
-
 
 type alias Giphy = 
   { dataname : String
@@ -31,35 +30,32 @@ type alias Backend =
   , userid : Int
   }
 
-type alias Webdata =
+type alias Favorite =
   { webname : String
-  , webimage : String
+  , webid : Int
   }
 
 initModel : Model
 initModel =
-   { names = []
-   , users = []
-   , photo = webinit
+   { frontend = []
+   , backend = []
+   , favorite = webinit
    , search = ""
    , error = ""
    }
 
-webinit : Webdata
+webinit : Favorite
 webinit =
   { webname = ""
-  , webimage = ""
+  , webid = 0
   }
 
 {-- Api --}
 
-api : String
-api =
-   "http://api.giphy.com/v1/gifs/search?q=cake&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15"
+{-- Giphy Api --}
 
-
-getData : String -> Http.Request (List Giphy)
-getData search =
+getDataFromGiphy : String -> Http.Request (List Giphy)
+getDataFromGiphy search =
   let
     giphyapi = "http://api.giphy.com/v1/gifs/search?q=" ++ search ++ "&api_key=4zqMjqn9oECYbu2ZwHgseweLyahB2IxR&limit=15"
       
@@ -79,18 +75,20 @@ getGiphy =
        (JD.field "title" JD.string)
        (JD.at [ "images", "original_still", "url" ] JD.string)
 
-userapi : String
-userapi =
+{-- Backend Api --}
+
+backendapi : String
+backendapi =
    "http://localhost:4000/api/users/"
 
 
-getBackendUsers : Http.Request (List Backend)
-getBackendUsers =
-   Http.get userapi getUsers
+getBackendData : Http.Request (List Backend)
+getBackendData =
+   Http.get backendapi getDataFromUser
 
 
-getUsers : JD.Decoder (List Backend)
-getUsers =
+getDataFromUser : JD.Decoder (List Backend)
+getDataFromUser =
    JD.list getUser
 
 
@@ -101,29 +99,44 @@ getUser =
        (JD.field "pic" JD.string)
        (JD.field "id" JD.int)
 
---failOnError : Result String a -> JD.Decoder a
---failOnError result =
---  case result of
---    Ok a ->
---      JD.succeed a
---    Err error ->
---      JD.fail error
+{-- Favorite Api --} 
+
+favoriteapi : String 
+favoriteapi =
+   "http://localhost:4000/api/users/post/"
+
+
+postData : String -> Int -> Http.Request Favorite
+postData name id =
+   Http.post favoriteapi (Http.jsonBody (postFavData name id)) sendData
+
+postFavData : String -> Int -> JE.Value
+postFavData name id =
+    JE.object
+        [ ( "name", JE.string name )
+        , ( "webid", JE.int id )]
+
+sendData : JD.Decoder Favorite 
+sendData =
+   JD.map2 Favorite
+    (JD.field "name" JD.string)
+    (JD.field "webid" JD.int)
+
 
 {-- Initial Command --}
 
 initialCmd : Cmd Msg
 initialCmd =
-   Http.send GetDataFromBackend getBackendUsers
+   Http.send GetDataFromBackend getBackendData
 
 
 {-- Msg --}
 
 type Msg
    = GetDataFromBackend (Result Http.Error (List Backend))
-   --| SetGiphyApi 
    | GetDataFromGiphy (Result Http.Error (List Giphy))
-   | PostPic Webdata
-   | PicPosted (Result Http.Error Webdata)
+   | PostData String Int
+   | DataPosted (Result Http.Error Favorite)
    | Search String
    | AddSearch
 
@@ -134,31 +147,34 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GetDataFromBackend (Ok users) ->
-            ( { model | users = users }, Cmd.none )
+        GetDataFromBackend (Ok backend) ->
+            ( { model | backend = backend }, Cmd.none )
 
         GetDataFromBackend (Err error) ->
             ( { model | error = toString error }, Cmd.none )
-        --SetGiphyApi ->
-        --    ( model, Http.send GetDataFromGiphy getData )
+        
 
-        GetDataFromGiphy (Ok names) ->
-            ( { model | names = names }, Cmd.none)
+        GetDataFromGiphy (Ok frontend) ->
+            ( { model | frontend = frontend }, Cmd.none)
 
         GetDataFromGiphy (Err error) ->
             ( { model | error = toString error }, Cmd.none )
-        PostPic photo ->
-            ( {model | photo = photo}, Http.send PicPosted (postData photo) )
+        
 
-        PicPosted (Ok photo) ->
-            ( { model | photo = photo }, Cmd.none)
+        PostData name webid ->
+            ( model, Http.send DataPosted (postData name webid) )
 
-        PicPosted (Err error) ->
+        DataPosted (Ok favorite) ->
+            ( { model | favorite = favorite }, Cmd.none)
+
+        DataPosted (Err error) ->
             ( { model | error = toString error }, Cmd.none )
+        
+
         Search search ->
           ( { model | search = search}, Cmd.none )
         AddSearch ->
-          ( { model | search = "" }, Http.send GetDataFromGiphy (getData model.search))
+          ( { model | search = "" }, Http.send GetDataFromGiphy (getDataFromGiphy model.search))
 
 
 
@@ -172,18 +188,18 @@ view model =
            (List.map
                 (\n ->
                     li []
-                        [ button [onClick (PostPic n.username, n.userimage)] [h2 [] [ text ("Title : " ++ n.username) ]]
+                        [ button [onClick (PostData n.username n.userid)] [h2 [] [ text ("Title : " ++ n.username) ]]
                         , img [src n.userimage] []
                         , h3 [] [text <| toString n.userid]
                         ]
                 )
-                model.users
+                model.backend
            )
         , div []
             [ input [ type_ "text", value model.search, onInput Search] []
             , button [onClick AddSearch] [text "Add"]
             ]
-        , if model.names == [] then
+        , if model.frontend == [] then
             div [][text "Hello"]
           else
             div [] 
@@ -197,7 +213,7 @@ view model =
 
                            ]
                   )
-                  model.names
+                  model.frontend
                 )
               ]
        ]
@@ -220,26 +236,6 @@ main =
 
 
 
-backendapi : String 
-backendapi =
-   "http://localhost:4000/api/users/post/"
-
-
-postData : String -> String -> Http.Request String
-postData name image =
-   Http.post backendapi (Http.jsonBody (postName name image)) sendName
-
-postName : String -> String -> JE.Value
-postName name image =
-    JE.object
-        [ ( "name", JE.string name )
-        , ( "image", JE.string image )]
-
-sendName : JD.Decoder String 
-sendName =
-   JD.map2 Webdata
-    (JD.field "name" JD.string)
-    (JD.field "image" JD.string)
 
 
 

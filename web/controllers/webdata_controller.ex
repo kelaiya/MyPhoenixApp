@@ -2,8 +2,8 @@ defmodule Myapp.WebdataController do
   use Myapp.Web, :controller
 
 
-  def create(conn, %{"name" => name}) do
-		Myapp.Repo.insert %Myapp.Webdata{name: name}
-		json conn, %{"name": name}
+  def create(conn, %{"name" => name, "webid" => webid}) do
+		Myapp.Repo.insert %Myapp.Webdata{name: name, webid: webid}
+		json conn, %{"name": name, "webid": webid}
 	end
 end
