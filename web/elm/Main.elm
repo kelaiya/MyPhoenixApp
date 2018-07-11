@@ -33,6 +33,7 @@ type alias Backend =
 type alias Favorite =
   { webname : String
   , webid : Int
+  , webimage : String
   }
 
 initModel : Model
@@ -48,6 +49,7 @@ webinit : Favorite
 webinit =
   { webname = ""
   , webid = 0
+  , webimage = ""
   }
 
 {-- Api --}
@@ -106,21 +108,23 @@ favoriteapi =
    "http://localhost:4000/api/users/post/"
 
 
-postData : String -> Int -> Http.Request Favorite
-postData name id =
-   Http.post favoriteapi (Http.jsonBody (postFavData name id)) sendData
+postData : String -> Int -> String -> Http.Request Favorite
+postData name id webimage =
+   Http.post favoriteapi (Http.jsonBody (postFavData name id webimage)) sendData
 
-postFavData : String -> Int -> JE.Value
-postFavData name id =
+postFavData : String -> Int -> String -> JE.Value
+postFavData name id webimage =
     JE.object
         [ ( "name", JE.string name )
-        , ( "webid", JE.int id )]
+        , ( "webid", JE.int id )
+        , ("webimage", JE.string webimage)]
 
 sendData : JD.Decoder Favorite 
 sendData =
-   JD.map2 Favorite
+   JD.map3 Favorite
     (JD.field "name" JD.string)
     (JD.field "webid" JD.int)
+    (JD.field "webimage" JD.string)
 
 
 {-- Initial Command --}
@@ -135,7 +139,7 @@ initialCmd =
 type Msg
    = GetDataFromBackend (Result Http.Error (List Backend))
    | GetDataFromGiphy (Result Http.Error (List Giphy))
-   | PostData String Int
+   | PostData String Int String
    | DataPosted (Result Http.Error Favorite)
    | Search String
    | AddSearch
@@ -161,8 +165,8 @@ update msg model =
             ( { model | error = toString error }, Cmd.none )
         
 
-        PostData name webid ->
-            ( model, Http.send DataPosted (postData name webid) )
+        PostData name webid webimage ->
+            ( model, Http.send DataPosted (postData name webid webimage) )
 
         DataPosted (Ok favorite) ->
             ( { model | favorite = favorite }, Cmd.none)
@@ -188,7 +192,7 @@ view model =
            (List.map
                 (\n ->
                     li []
-                        [ button [onClick (PostData n.username n.userid)] [h2 [] [ text ("Title : " ++ n.username) ]]
+                        [ button [onClick (PostData n.username n.userid n.userimage)] [h2 [] [ text ("Title : " ++ n.username) ]]
                         , img [src n.userimage] []
                         , h3 [] [text <| toString n.userid]
                         ]

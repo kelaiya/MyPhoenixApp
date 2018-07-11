@@ -1,5 +1,5 @@
-var _user$project$Main$postFavData = F2(
-	function (name, id) {
+var _user$project$Main$postFavData = F3(
+	function (name, id, webimage) {
 		return _elm_lang$core$Json_Encode$object(
 			{
 				ctor: '::',
@@ -15,13 +15,21 @@ var _user$project$Main$postFavData = F2(
 						_0: 'webid',
 						_1: _elm_lang$core$Json_Encode$int(id)
 					},
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'webimage',
+							_1: _elm_lang$core$Json_Encode$string(webimage)
+						},
+						_1: {ctor: '[]'}
+					}
 				}
 			});
 	});
 var _user$project$Main$favoriteapi = 'http://localhost:4000/api/users/post/';
 var _user$project$Main$backendapi = 'http://localhost:4000/api/users/';
-var _user$project$Main$webinit = {webname: '', webid: 0};
+var _user$project$Main$webinit = {webname: '', webid: 0, webimage: ''};
 var _user$project$Main$initModel = {
 	frontend: {ctor: '[]'},
 	backend: {ctor: '[]'},
@@ -80,22 +88,23 @@ var _user$project$Main$getUser = A4(
 	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int));
 var _user$project$Main$getDataFromUser = _elm_lang$core$Json_Decode$list(_user$project$Main$getUser);
 var _user$project$Main$getBackendData = A2(_elm_lang$http$Http$get, _user$project$Main$backendapi, _user$project$Main$getDataFromUser);
-var _user$project$Main$Favorite = F2(
-	function (a, b) {
-		return {webname: a, webid: b};
+var _user$project$Main$Favorite = F3(
+	function (a, b, c) {
+		return {webname: a, webid: b, webimage: c};
 	});
-var _user$project$Main$sendData = A3(
-	_elm_lang$core$Json_Decode$map2,
+var _user$project$Main$sendData = A4(
+	_elm_lang$core$Json_Decode$map3,
 	_user$project$Main$Favorite,
 	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
-	A2(_elm_lang$core$Json_Decode$field, 'webid', _elm_lang$core$Json_Decode$int));
-var _user$project$Main$postData = F2(
-	function (name, id) {
+	A2(_elm_lang$core$Json_Decode$field, 'webid', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode$field, 'webimage', _elm_lang$core$Json_Decode$string));
+var _user$project$Main$postData = F3(
+	function (name, id, webimage) {
 		return A3(
 			_elm_lang$http$Http$post,
 			_user$project$Main$favoriteapi,
 			_elm_lang$http$Http$jsonBody(
-				A2(_user$project$Main$postFavData, name, id)),
+				A3(_user$project$Main$postFavData, name, id, webimage)),
 			_user$project$Main$sendData);
 	});
 var _user$project$Main$AddSearch = {ctor: 'AddSearch'};
@@ -105,9 +114,9 @@ var _user$project$Main$Search = function (a) {
 var _user$project$Main$DataPosted = function (a) {
 	return {ctor: 'DataPosted', _0: a};
 };
-var _user$project$Main$PostData = F2(
-	function (a, b) {
-		return {ctor: 'PostData', _0: a, _1: b};
+var _user$project$Main$PostData = F3(
+	function (a, b, c) {
+		return {ctor: 'PostData', _0: a, _1: b, _2: c};
 	});
 var _user$project$Main$view = function (model) {
 	return A2(
@@ -141,7 +150,7 @@ var _user$project$Main$view = function (model) {
 										{
 											ctor: '::',
 											_0: _elm_lang$html$Html_Events$onClick(
-												A2(_user$project$Main$PostData, n.username, n.userid)),
+												A3(_user$project$Main$PostData, n.username, n.userid, n.userimage)),
 											_1: {ctor: '[]'}
 										},
 										{
@@ -355,7 +364,7 @@ var _user$project$Main$update = F2(
 					_1: A2(
 						_elm_lang$http$Http$send,
 						_user$project$Main$DataPosted,
-						A2(_user$project$Main$postData, _p0._0, _p0._1))
+						A3(_user$project$Main$postData, _p0._0, _p0._1, _p0._2))
 				};
 			case 'DataPosted':
 				if (_p0._0.ctor === 'Ok') {
